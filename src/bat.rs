@@ -9,6 +9,7 @@ pub struct BatDebounce {
     pub time: Stopwatch,
 }
 
+#[derive(Clone)]
 pub enum Variant {
     Light,
     Dark,
@@ -19,6 +20,12 @@ impl Variant {
         match self {
             Variant::Light => Quat::from_rotation_z(0.0),
             Variant::Dark => Quat::from_rotation_z(PI),
+        }
+    }
+    pub fn default_y_position(&self) -> f32 {
+        match self {
+            Variant::Light => -20.0,
+            Variant::Dark => 20.0,
         }
     }
 }
@@ -32,28 +39,29 @@ pub enum Direction {
 
 #[derive(Component)]
 pub struct Bat {
-    variant: Variant,
+    pub variant: Variant,
     animation_timer: Timer,
     pub swinging: Direction,
-    offset_x: f32,
+    pub position_x: f32,
 }
 
 pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>, variant: Variant) {
-    let (item_offset, texture) = match variant {
-        Variant::Light => (Vec3::new(0.0, -20.0 * consts::SCALE, 10.0), "bat_light.png"),
-        Variant::Dark => (Vec3::new(0.0, 20.0 * consts::SCALE, 10.0), "bat_dark.png"),
+    let texture = match variant {
+        Variant::Light => "bat_light.png",
+        Variant::Dark => "bat_dark.png",
     };
+    let position = Vec3::new(0.0, variant.default_y_position() * consts::SCALE, 10.0);
     let bat = Bat {
         variant,
         swinging: Direction::None,
         animation_timer: Timer::from_seconds(consts::SWING_COOLDOWN, TimerMode::Repeating),
-        offset_x: 0.0,
+        position_x: 0.0,
     };
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load(texture),
             transform: Transform::from_scale(Vec3::splat(1.0 * consts::SCALE))
-                .with_translation(item_offset)
+                .with_translation(position)
                 .with_rotation(bat.variant.default_rotation()),
             ..default()
         },
@@ -73,17 +81,22 @@ pub fn update(
                     bat.swinging = Direction::Down;
                     continue;
                 }
+                let move_speed = if keys.pressed(keymap::run(&bat.variant)) {
+                    consts::RUN_SPEED
+                } else {
+                    consts::MOVE_SPEED
+                };
                 if keys.pressed(keymap::left(&bat.variant)) {
-                    bat.offset_x -= time.delta_seconds() * consts::SCALE * consts::MOVE_SPEED;
+                    bat.position_x -= time.delta_seconds() * move_speed;
                 }
                 if keys.pressed(keymap::right(&bat.variant)) {
-                    bat.offset_x += time.delta_seconds() * consts::SCALE * consts::MOVE_SPEED;
+                    bat.position_x += time.delta_seconds() * move_speed;
                 }
-                bat.offset_x = bat
-                    .offset_x
+                bat.position_x = bat
+                    .position_x
                     .clamp(-consts::SCALE * 12.0, consts::SCALE * 12.0);
                 let offset = Vec3::new(
-                    bat.offset_x,
+                    bat.position_x * consts::SCALE,
                     transform.translation.y,
                     transform.translation.z,
                 );

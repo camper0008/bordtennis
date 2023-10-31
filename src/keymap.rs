@@ -22,3 +22,10 @@ pub fn right(variant: &Variant) -> KeyCode {
         Variant::Dark => KeyCode::Right,
     }
 }
+
+pub fn run(variant: &Variant) -> KeyCode {
+    match variant {
+        Variant::Light => KeyCode::ShiftLeft,
+        Variant::Dark => KeyCode::ShiftRight,
+    }
+}
