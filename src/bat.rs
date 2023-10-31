@@ -40,11 +40,8 @@ pub struct Bat {
 
 pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>, variant: Variant) {
     let (item_offset, texture) = match variant {
-        Variant::Light => (
-            Vec3::new(0.0, -20.0 * consts::SCALE, 100.0),
-            "bat_light.png",
-        ),
-        Variant::Dark => (Vec3::new(0.0, 20.0 * consts::SCALE, 100.0), "bat_dark.png"),
+        Variant::Light => (Vec3::new(0.0, -20.0 * consts::SCALE, 10.0), "bat_light.png"),
+        Variant::Dark => (Vec3::new(0.0, 20.0 * consts::SCALE, 10.0), "bat_dark.png"),
     };
     let bat = Bat {
         variant,
@@ -85,7 +82,11 @@ pub fn update(
                 bat.offset_x = bat
                     .offset_x
                     .clamp(-consts::SCALE * 12.0, consts::SCALE * 12.0);
-                let offset = Vec3::new(bat.offset_x, transform.translation.y, 0.0);
+                let offset = Vec3::new(
+                    bat.offset_x,
+                    transform.translation.y,
+                    transform.translation.z,
+                );
                 transform.translation = offset;
             }
             Direction::Up => {

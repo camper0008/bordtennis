@@ -30,9 +30,9 @@ pub fn update(
         transform.translation.y = time.elapsed_seconds().sin() * consts::SCALE * 16.0;
         for bat in &mut bats {
             match bat.swinging {
-                Direction::Up => todo!(),
-                Direction::Down => todo!(),
-                Direction::None => todo!(),
+                Direction::Up => println!("going up..."),
+                Direction::Down => println!("going down..."),
+                Direction::None => println!("none"),
             }
         }
     }
