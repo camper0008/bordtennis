@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
 
 use crate::{
@@ -83,6 +85,9 @@ pub fn update(
     ball.position += offset;
     transform.translation.x = ball.position.x * consts::SCALE;
     transform.translation.y = ball.position.y * consts::SCALE;
+    let angle = (ball.velocity.x / ball.velocity.y).atan();
+    transform.rotation = Quat::from_rotation_z(angle + PI * 0.5);
+
     if !(Variant::Light.default_y_position()..Variant::Dark.default_y_position())
         .contains(&ball.position.y)
     {
