@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     bat::{Bat, Direction, Variant},
-    consts, state::State,
+    consts, state::State, audio::{self},
 };
 
 #[derive(Component)]
@@ -40,7 +40,9 @@ pub fn update(
     state: Query<&State>,
     mut ball: Query<(&mut Transform, &mut Ball)>,
     mut bats: Query<&mut Bat>,
-) {
+    mut commands: Commands, asset_server: Res<AssetServer>,
+) 
+{
     for state in &state {
         if !matches!(state, State::None) {
             return;
@@ -72,6 +74,8 @@ pub fn update(
             ball.velocity.y *= -(diff_y.abs() * 0.4).clamp(0.9, 1.25);
             ball.last_hit = Some(bat.variant.clone());
             ball.velocity.y = ball.velocity.y.clamp(-64.0, 64.0);
+
+            audio::spawn_hit_sound(&mut commands, &asset_server);
         }
         let offset = ball.velocity * Vec2::splat(time.delta_seconds());
         ball.position += offset;
