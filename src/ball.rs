@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
+    audio::{self},
     bat::{Bat, Direction, Variant},
-    consts, state::State, audio::{self},
+    consts,
+    state::State,
 };
 
 #[derive(Component)]
@@ -40,14 +42,14 @@ pub fn update(
     state: Query<&State>,
     mut ball: Query<(&mut Transform, &mut Ball)>,
     mut bats: Query<&mut Bat>,
-    mut commands: Commands, asset_server: Res<AssetServer>,
-) 
-{
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
     for state in &state {
         if !matches!(state, State::None) {
             return;
         }
-    }    
+    }
     for (mut transform, mut ball) in &mut ball {
         for bat in &mut bats {
             let initial_position = bat.variant.default_y_position();

@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 
+mod audio;
 mod ball;
 mod bat;
 mod consts;
 mod keymap;
-mod table;
 mod state;
-mod audio;
+mod table;
 
 fn main() {
     App::new()

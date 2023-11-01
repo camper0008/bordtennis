@@ -1,7 +1,10 @@
-
 use bevy::prelude::*;
 
-use crate::{consts, keymap, bat::{Variant, Direction, Bat}, ball::Ball};
+use crate::{
+    ball::Ball,
+    bat::{Bat, Direction, Variant},
+    consts, keymap,
+};
 
 #[derive(Component)]
 pub enum State {
@@ -16,7 +19,8 @@ pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load("pause.png"),
-            transform: Transform::from_scale(Vec3::splat(1.0 * consts::SCALE)).with_translation(Vec3::new(0.0, 0.0, 100.0)),
+            transform: Transform::from_scale(Vec3::splat(1.0 * consts::SCALE))
+                .with_translation(Vec3::new(0.0, 0.0, 100.0)),
             ..default()
         },
         state,
@@ -39,7 +43,11 @@ pub fn update(
         }
         if keys.just_pressed(keymap::restart()) {
             for mut ball in &mut ball {
-                let Ball { position, velocity, last_hit } = Ball::default();
+                let Ball {
+                    position,
+                    velocity,
+                    last_hit,
+                } = Ball::default();
                 ball.position = position;
                 ball.velocity = velocity;
                 ball.last_hit = last_hit;

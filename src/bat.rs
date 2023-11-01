@@ -79,7 +79,7 @@ pub fn update(
         if !matches!(state, State::None) {
             return;
         }
-    }    
+    }
     for (mut transform, mut bat) in &mut bat {
         match bat.swinging {
             Direction::None => {
