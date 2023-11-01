@@ -5,7 +5,7 @@ rustup default stable
 rustup target install wasm32-unknown-unknown
 
 echo "install bindgen"
-cargo install wasm-bindgen-cli
+cargo install -f wasm-bindgen-cli --version 0.2.87
 
 echo "building"
 cargo build --release --target wasm32-unknown-unknown $@
