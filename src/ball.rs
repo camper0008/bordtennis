@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use bevy::prelude::*;
 
 use crate::{
@@ -54,11 +52,20 @@ pub fn update(
     }
     let (mut transform, mut ball) = ball.single_mut();
     for bat in &mut bats {
-        let initial_position = bat.variant.default_y_position();
-        if initial_position > 0.0 && ball.position.y - 1.0 > initial_position
-            || initial_position < 0.0 && ball.position.y + 1.0 < initial_position
+        #[cfg(feature = "wall")]
         {
-            continue;
+            match &ball.last_hit {
+                Variant::Light => {
+                    if ball.position.y > Variant::Dark.default_y_position() {
+                        ball.velocity.y *= -1.25;
+                        ball.velocity.y = ball.velocity.y.clamp(-64.0, 64.0);
+                        ball.position.y = Variant::Dark.default_y_position() - 0.1;
+                        ball.last_hit = Variant::Dark;
+                    }
+                    continue;
+                }
+                _ => {}
+            }
         }
 
         match (&bat.variant, &ball.last_hit) {
@@ -66,6 +73,7 @@ pub fn update(
             (Variant::Light, Variant::Light) => continue,
             _ => {}
         };
+
         if bat.swinging != Direction::Down {
             continue;
         }
@@ -86,11 +94,15 @@ pub fn update(
     transform.translation.x = ball.position.x * consts::SCALE;
     transform.translation.y = ball.position.y * consts::SCALE;
     let angle = (ball.velocity.x / ball.velocity.y).atan();
-    transform.rotation = Quat::from_rotation_z(angle + PI * 0.5);
+    transform.rotation = Quat::from_rotation_z(angle);
 
-    if !(Variant::Light.default_y_position()..Variant::Dark.default_y_position())
-        .contains(&ball.position.y)
-    {
+    #[cfg(not(feature = "wall"))]
+    let playable_range = Variant::Light.default_y_position()..=Variant::Dark.default_y_position();
+
+    #[cfg(feature = "wall")]
+    let playable_range = Variant::Light.default_y_position()..=f32::MAX;
+
+    if !(playable_range).contains(&ball.position.y) {
         state.game_over(GameState::Winner(ball.last_hit.clone()));
         let Ball {
             position,
