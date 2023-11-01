@@ -8,7 +8,7 @@ echo "install bindgen"
 cargo install wasm-bindgen-cli
 
 echo "building"
-cargo build --release --target wasm32-unknown-unknown $1
+cargo build --release --target wasm32-unknown-unknown $@
 
 echo "generating bindings"
 wasm-bindgen --out-dir ./web/scripts --target web ./target/wasm32-unknown-unknown/release/bordtennis.wasm
