@@ -1,8 +1,8 @@
 #!/bin/sh
 
 echo "install toolchain"
-rustup target install wasm32-unknown-unknown
 rustup default stable
+rustup target install wasm32-unknown-unknown
 
 echo "install bindgen"
 cargo install wasm-bindgen-cli
