@@ -16,7 +16,6 @@ fn main() {
         .add_systems(Update, bat::update)
         .add_systems(Update, ball::update)
         .add_systems(Update, state::update)
-        .add_systems(Update, audio::update_music)
         .run();
 }
 

@@ -2,7 +2,10 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, time::Stopwatch};
 
-use crate::{consts, keymap, state::State};
+use crate::{
+    consts, keymap,
+    state::{PauseState, State},
+};
 
 #[derive(Component)]
 pub struct BatDebounce {
@@ -75,10 +78,9 @@ pub fn update(
     mut bat: Query<(&mut Transform, &mut Bat)>,
     state: Query<&State>,
 ) {
-    for state in &state {
-        if !matches!(state, State::None) {
-            return;
-        }
+    let state = state.get_single().unwrap();
+    if !matches!(state.pause_state, PauseState::None) {
+        return;
     }
     for (mut transform, mut bat) in &mut bat {
         match bat.swinging {
