@@ -16,10 +16,11 @@ pub struct Ball {
 
 impl Default for Ball {
     fn default() -> Self {
+        let server = Variant::Dark;
         Self {
-            position: Vec2::new(0.0, 0.0),
-            velocity: Vec2::new(0.0, -10.0),
-            last_hit: Variant::Dark,
+            position: Vec2::new(0.0, server.default_y_position()),
+            velocity: Vec2::new(0.0, server.default_y_position() * -0.5),
+            last_hit: server,
         }
     }
 }
