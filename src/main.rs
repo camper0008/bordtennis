@@ -5,6 +5,7 @@ mod bat;
 mod consts;
 mod keymap;
 mod table;
+mod state;
 
 fn main() {
     App::new()
@@ -13,6 +14,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, bat::update)
         .add_systems(Update, ball::update)
+        .add_systems(Update, state::update)
         .run();
 }
 
@@ -22,4 +24,5 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     bat::spawn(&mut commands, &asset_server, bat::Variant::Light);
     table::spawn(&mut commands, &asset_server);
     ball::spawn(&mut commands, &asset_server);
+    state::spawn(&mut commands, &asset_server);
 }

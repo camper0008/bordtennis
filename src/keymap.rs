@@ -29,3 +29,11 @@ pub fn run(variant: &Variant) -> KeyCode {
         Variant::Dark => KeyCode::ShiftRight,
     }
 }
+
+pub fn pause() -> KeyCode {
+    KeyCode::P
+}
+
+pub fn restart() -> KeyCode {
+    KeyCode::R
+}

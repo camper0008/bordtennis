@@ -2,22 +2,28 @@ use bevy::prelude::*;
 
 use crate::{
     bat::{Bat, Direction, Variant},
-    consts,
+    consts, state::State,
 };
 
 #[derive(Component)]
 pub struct Ball {
-    position: Vec2,
-    velocity: Vec2,
-    last_hit: Option<Variant>,
+    pub position: Vec2,
+    pub velocity: Vec2,
+    pub last_hit: Option<Variant>,
+}
+
+impl Default for Ball {
+    fn default() -> Self {
+        Self {
+            position: Vec2::new(0.0, 0.0),
+            velocity: Vec2::new(0.0, -10.0),
+            last_hit: None,
+        }
+    }
 }
 
 pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>) {
-    let ball = Ball {
-        position: Vec2::new(0.0, 0.0),
-        velocity: Vec2::new(0.0, -10.0),
-        last_hit: None,
-    };
+    let ball = Ball::default();
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load("ball.png"),
@@ -31,9 +37,15 @@ pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>) {
 
 pub fn update(
     time: Res<Time>,
+    state: Query<&State>,
     mut ball: Query<(&mut Transform, &mut Ball)>,
     mut bats: Query<&mut Bat>,
 ) {
+    for state in &state {
+        if !matches!(state, State::None) {
+            return;
+        }
+    }    
     for (mut transform, mut ball) in &mut ball {
         for bat in &mut bats {
             let initial_position = bat.variant.default_y_position();

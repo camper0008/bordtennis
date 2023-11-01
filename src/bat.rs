@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use bevy::{prelude::*, time::Stopwatch};
 
-use crate::{consts, keymap};
+use crate::{consts, keymap, state::State};
 
 #[derive(Component)]
 pub struct BatDebounce {
@@ -72,9 +72,15 @@ pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>, variant: 
 pub fn update(
     time: Res<Time>,
     keys: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Transform, &mut Bat)>,
+    mut bat: Query<(&mut Transform, &mut Bat)>,
+    state: Query<&State>,
 ) {
-    for (mut transform, mut bat) in &mut query {
+    for state in &state {
+        if !matches!(state, State::None) {
+            return;
+        }
+    }    
+    for (mut transform, mut bat) in &mut bat {
         match bat.swinging {
             Direction::None => {
                 if keys.just_pressed(keymap::swing(&bat.variant)) {
