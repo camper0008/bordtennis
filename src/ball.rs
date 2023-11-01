@@ -4,14 +4,14 @@ use crate::{
     audio::{self},
     bat::{Bat, Direction, Variant},
     consts,
-    state::{PauseState, State},
+    state::{GameState, State},
 };
 
 #[derive(Component)]
 pub struct Ball {
     pub position: Vec2,
     pub velocity: Vec2,
-    pub last_hit: Option<Variant>,
+    pub last_hit: Variant,
 }
 
 impl Default for Ball {
@@ -19,7 +19,7 @@ impl Default for Ball {
         Self {
             position: Vec2::new(0.0, 0.0),
             velocity: Vec2::new(0.0, -10.0),
-            last_hit: None,
+            last_hit: Variant::Dark,
         }
     }
 }
@@ -39,14 +39,14 @@ pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>) {
 
 pub fn update(
     time: Res<Time>,
-    state: Query<&State>,
+    mut state: Query<&mut State>,
     mut ball: Query<(&mut Transform, &mut Ball)>,
     mut bats: Query<&mut Bat>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    let state = state.get_single().unwrap();
-    if !matches!(state.pause_state, PauseState::None) {
+    let mut state = state.get_single_mut().unwrap();
+    if !matches!(state.game_state, GameState::Playing) {
         return;
     }
     let (mut transform, mut ball) = ball.get_single_mut().unwrap();
@@ -59,8 +59,8 @@ pub fn update(
         }
 
         match (&bat.variant, &ball.last_hit) {
-            (Variant::Dark, Some(Variant::Dark)) => continue,
-            (Variant::Light, Some(Variant::Light)) => continue,
+            (Variant::Dark, Variant::Dark) => continue,
+            (Variant::Light, Variant::Light) => continue,
             _ => {}
         };
         if bat.swinging != Direction::Down {
@@ -73,7 +73,7 @@ pub fn update(
         }
         ball.velocity.x = -diff_x * 4.0;
         ball.velocity.y *= -(diff_y.abs() * 0.4).clamp(0.9, 1.25);
-        ball.last_hit = Some(bat.variant.clone());
+        ball.last_hit = bat.variant.clone();
         ball.velocity.y = ball.velocity.y.clamp(-64.0, 64.0);
 
         audio::spawn_hit_sound(&mut commands, &asset_server);
@@ -82,4 +82,21 @@ pub fn update(
     ball.position += offset;
     transform.translation.x = ball.position.x * consts::SCALE;
     transform.translation.y = ball.position.y * consts::SCALE;
+    if !(Variant::Light.default_y_position()..Variant::Dark.default_y_position())
+        .contains(&ball.position.y)
+    {
+        state.game_over(GameState::Winner(ball.last_hit.clone()));
+        let Ball {
+            position,
+            velocity,
+            last_hit,
+        } = Ball::default();
+        ball.position = position;
+        ball.velocity = velocity;
+        ball.last_hit = last_hit;
+        for mut bat in &mut bats {
+            bat.swinging = Direction::None;
+            bat.position_x = 0.0;
+        }
+    }
 }

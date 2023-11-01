@@ -7,28 +7,65 @@ use crate::{
     consts, keymap,
 };
 
-pub enum PauseState {
+pub enum GameState {
     Paused,
     NewGame,
-    None,
+    Playing,
     Winner(Variant),
 }
+
+impl GameState {
+    fn sprite_index(&self) -> usize {
+        match self {
+            GameState::Paused => 0,
+            GameState::NewGame => 1,
+            GameState::Winner(Variant::Light) => 2,
+            GameState::Winner(Variant::Dark) => 3,
+            GameState::Playing => unreachable!(),
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct State {
-    pub pause_state: PauseState,
+    pub game_state: GameState,
     game_time: Stopwatch,
     music_state: Music,
 }
 
-pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>) {
-    let state = State {
-        pause_state: PauseState::NewGame,
-        game_time: Stopwatch::new(),
-        music_state: Music::One,
-    };
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            game_state: GameState::NewGame,
+            game_time: Stopwatch::new(),
+            music_state: Music::Zero,
+        }
+    }
+}
+
+impl State {
+    pub fn game_over(&mut self, pause_state: GameState) {
+        self.game_time.reset();
+        self.music_state = Music::Zero;
+        self.game_state = pause_state;
+    }
+}
+
+pub fn spawn(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
+) {
+    let state = State::default();
+
+    let texture_handle = asset_server.load("text.png");
+    let texture_atlas =
+        TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 1, 4, None, None);
+    let texture_atlas = texture_atlases.add(texture_atlas);
+
     commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load("pause.png"),
+        SpriteSheetBundle {
+            texture_atlas,
             transform: Transform::from_scale(Vec3::splat(1.0 * consts::SCALE))
                 .with_translation(Vec3::new(0.0, 0.0, 100.0)),
             ..default()
@@ -40,18 +77,16 @@ pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>) {
 pub fn update(
     time: Res<Time>,
     keys: Res<Input<KeyCode>>,
-    mut state: Query<(&mut State, &mut Transform)>,
+    mut state: Query<(&mut State, &mut Transform, &mut TextureAtlasSprite)>,
     mut ball: Query<&mut Ball>,
     mut bats: Query<&mut Bat>,
     music_controller: Query<(&AudioSink, &Music)>,
 ) {
-    let (mut state, mut transform) = state.get_single_mut().unwrap();
-    if keys.just_pressed(keymap::pause()) && matches!(state.pause_state, PauseState::None) {
-        state.pause_state = PauseState::Paused;
-        transform.scale = Vec3::splat(1.0 * consts::SCALE);
+    let (mut state, mut transform, mut menu_sprite) = state.get_single_mut().unwrap();
+    if keys.just_pressed(keymap::pause()) && matches!(state.game_state, GameState::Playing) {
+        state.game_state = GameState::Paused;
     } else if keys.just_pressed(keymap::pause()) {
-        state.pause_state = PauseState::None;
-        transform.scale = Vec3::splat(0.0);
+        state.game_state = GameState::Playing;
     }
     if keys.just_pressed(keymap::restart()) {
         for mut ball in &mut ball {
@@ -68,11 +103,9 @@ pub fn update(
             bat.swinging = Direction::None;
             bat.position_x = 0.0;
         }
-        state.pause_state = PauseState::NewGame;
-        state.game_time.reset();
-        transform.scale = Vec3::splat(1.0 * consts::SCALE);
+        state.game_over(GameState::NewGame);
     };
-    if matches!(state.pause_state, PauseState::None) {
+    if matches!(state.game_state, GameState::Playing) {
         state.game_time.tick(time.delta());
     }
     let elapsed = state.game_time.elapsed_secs();
@@ -85,10 +118,28 @@ pub fn update(
     };
     for (&ref sink, &ref music_state) in &music_controller {
         match (&music_state, &state.music_state) {
-            (Music::Two, Music::Two) => sink.play(),
-            (Music::One, Music::One) => sink.play(),
-            (Music::Zero, Music::Zero) => sink.play(),
+            (Music::Two, Music::Two) if matches!(state.game_state, GameState::Playing) => {
+                sink.play()
+            }
+            (Music::One, Music::One) if matches!(state.game_state, GameState::Playing) => {
+                sink.play()
+            }
+            (Music::Zero, Music::Zero) if matches!(state.game_state, GameState::Playing) => {
+                sink.play()
+            }
             _ => sink.pause(),
         }
+    }
+    match &state.game_state {
+        game_state @ (GameState::Paused | GameState::NewGame | GameState::Winner(_)) => {
+            transform.scale = Vec3::splat(1.0 * consts::SCALE);
+            transform.translation = Vec3::new(
+                transform.translation.x,
+                time.elapsed_seconds().sin() * consts::SCALE * 4.0,
+                transform.translation.z,
+            );
+            menu_sprite.index = game_state.sprite_index();
+        }
+        GameState::Playing => transform.scale = Vec3::ZERO,
     }
 }

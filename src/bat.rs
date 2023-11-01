@@ -4,7 +4,7 @@ use bevy::{prelude::*, time::Stopwatch};
 
 use crate::{
     consts, keymap,
-    state::{PauseState, State},
+    state::{GameState, State},
 };
 
 #[derive(Component)]
@@ -79,7 +79,7 @@ pub fn update(
     state: Query<&State>,
 ) {
     let state = state.get_single().unwrap();
-    if !matches!(state.pause_state, PauseState::None) {
+    if !matches!(state.game_state, GameState::Playing) {
         return;
     }
     for (mut transform, mut bat) in &mut bat {

@@ -19,12 +19,16 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
     commands.spawn(Camera2dBundle::default());
     bat::spawn(&mut commands, &asset_server, bat::Variant::Dark);
     bat::spawn(&mut commands, &asset_server, bat::Variant::Light);
     table::spawn(&mut commands, &asset_server);
     ball::spawn(&mut commands, &asset_server);
-    state::spawn(&mut commands, &asset_server);
+    state::spawn(&mut commands, &asset_server, &mut texture_atlases);
     audio::spawn_music(&mut commands, &asset_server);
 }
