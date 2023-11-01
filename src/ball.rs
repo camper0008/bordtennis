@@ -24,7 +24,7 @@ impl Default for Ball {
     }
 }
 
-pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+pub fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     let ball = Ball::default();
     commands.spawn((
         SpriteBundle {
@@ -45,11 +45,11 @@ pub fn update(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    let mut state = state.get_single_mut().unwrap();
+    let mut state = state.single_mut();
     if !matches!(state.game_state, GameState::Playing) {
         return;
     }
-    let (mut transform, mut ball) = ball.get_single_mut().unwrap();
+    let (mut transform, mut ball) = ball.single_mut();
     for bat in &mut bats {
         let initial_position = bat.variant.default_y_position();
         if initial_position > 0.0 && ball.position.y - 1.0 > initial_position

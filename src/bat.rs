@@ -78,7 +78,7 @@ pub fn update(
     mut bat: Query<(&mut Transform, &mut Bat)>,
     state: Query<&State>,
 ) {
-    let state = state.get_single().unwrap();
+    let state = state.single();
     if !matches!(state.game_state, GameState::Playing) {
         return;
     }

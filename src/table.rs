@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::consts;
 
-pub fn spawn(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+pub fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(SpriteBundle {
         texture: asset_server.load("table.png"),
         transform: Transform::from_scale(Vec3::splat(1.0 * consts::SCALE))

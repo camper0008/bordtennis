@@ -1,4 +1,4 @@
-use bevy::{prelude::*, time::Stopwatch};
+use bevy::{prelude::*, sprite::Anchor, time::Stopwatch, window::WindowResized};
 
 use crate::{
     audio::Music,
@@ -51,27 +51,60 @@ impl State {
     }
 }
 
+#[derive(Component)]
+pub struct ControlsUI;
+
 pub fn spawn(
-    commands: &mut Commands,
-    asset_server: &Res<AssetServer>,
-    texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    window: Query<&Window>,
 ) {
     let state = State::default();
 
     let texture_handle = asset_server.load("text.png");
     let texture_atlas =
-        TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 1, 4, None, None);
-    let texture_atlas = texture_atlases.add(texture_atlas);
+        TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 1, 5, None, None);
+    let menu_atlas = texture_atlases.add(texture_atlas);
+    let controls_atlas = menu_atlas.clone();
 
     commands.spawn((
         SpriteSheetBundle {
-            texture_atlas,
+            texture_atlas: menu_atlas,
             transform: Transform::from_scale(Vec3::splat(1.0 * consts::SCALE))
                 .with_translation(Vec3::new(0.0, 0.0, 100.0)),
             ..default()
         },
         state,
     ));
+
+    let window = window.single();
+
+    commands.spawn((
+        SpriteSheetBundle {
+            texture_atlas: controls_atlas,
+            transform: Transform::from_scale(Vec3::splat(0.5 * consts::SCALE))
+                .with_translation(Vec3::new(window.resolution.width() * -0.5, 0.0, 100.0)),
+            sprite: TextureAtlasSprite {
+                index: 4,
+                anchor: Anchor::CenterLeft,
+                ..default()
+            },
+            ..default()
+        },
+        ControlsUI,
+    ));
+}
+
+pub fn window_resized(
+    resize_event: Res<Events<WindowResized>>,
+    mut controls_ui: Query<&mut Transform, With<ControlsUI>>,
+) {
+    let mut reader = resize_event.get_reader();
+    for event in reader.iter(&resize_event) {
+        let mut transform = controls_ui.single_mut();
+        transform.translation.x = event.width * -0.5;
+    }
 }
 
 pub fn update(
@@ -82,7 +115,7 @@ pub fn update(
     mut bats: Query<&mut Bat>,
     music_controller: Query<(&AudioSink, &Music)>,
 ) {
-    let (mut state, mut transform, mut menu_sprite) = state.get_single_mut().unwrap();
+    let (mut state, mut transform, mut menu_sprite) = state.single_mut();
     if keys.just_pressed(keymap::pause()) && matches!(state.game_state, GameState::Playing) {
         state.game_state = GameState::Paused;
     } else if keys.just_pressed(keymap::pause()) {

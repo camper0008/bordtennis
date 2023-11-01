@@ -23,7 +23,7 @@ pub fn spawn_hit_sound(commands: &mut Commands, asset_server: &Res<AssetServer>)
     ));
 }
 
-pub fn spawn_music(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+pub fn spawn_music(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         AudioBundle {
             source: asset_server.load("music-step-0.ogg"),
