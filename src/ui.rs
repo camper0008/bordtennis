@@ -62,7 +62,7 @@ pub fn spawn(
     {
         let texture_handle = asset_server.load("score.png");
         let texture_atlas =
-            TextureAtlas::from_grid(texture_handle, Vec2::new(4.0, 6.0), 8, 2, None, None);
+            TextureAtlas::from_grid(texture_handle, Vec2::new(6.0, 8.0), 8, 2, None, None);
         let texture_atlas = texture_atlases.add(texture_atlas);
 
         for digit in 0..SCORE_DIGITS {
