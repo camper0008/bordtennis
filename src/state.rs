@@ -29,8 +29,9 @@ impl GameState {
 #[derive(Component)]
 pub struct State {
     pub game_state: GameState,
-    game_time: Stopwatch,
+    pub game_time: Stopwatch,
     music_state: Music,
+    pub hits_with_velocity: f32,
 }
 
 impl Default for State {
@@ -39,6 +40,7 @@ impl Default for State {
             game_state: GameState::NewGame,
             game_time: Stopwatch::new(),
             music_state: Music::Zero,
+            hits_with_velocity: 0.0,
         }
     }
 }
@@ -48,6 +50,7 @@ impl State {
         self.game_time.reset();
         self.music_state = Music::Zero;
         self.game_state = pause_state;
+        self.hits_with_velocity = 0.0;
     }
 }
 
@@ -127,6 +130,7 @@ pub fn update(
                 position,
                 velocity,
                 last_hit,
+                hit_edge: _,
             } = Ball::default();
             ball.position = position;
             ball.velocity = velocity;

@@ -12,6 +12,7 @@ pub struct Ball {
     pub position: Vec2,
     pub velocity: Vec2,
     pub last_hit: Variant,
+    pub hit_edge: bool,
 }
 
 impl Default for Ball {
@@ -21,6 +22,7 @@ impl Default for Ball {
             position: Vec2::new(0.0, server.default_y_position()),
             velocity: Vec2::new(0.0, server.default_y_position() * -0.5),
             last_hit: server,
+            hit_edge: false,
         }
     }
 }
@@ -43,6 +45,7 @@ pub fn update(
     mut state: Query<&mut State>,
     mut ball: Query<(&mut Transform, &mut Ball)>,
     mut bats: Query<&mut Bat>,
+    window: Query<&Window>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
@@ -51,6 +54,19 @@ pub fn update(
         return;
     }
     let (mut transform, mut ball) = ball.single_mut();
+    let window = window.single();
+
+    let ball_width = 2.0 * consts::SCALE;
+    let edge = (window.width() * 0.5 - ball_width * 0.5) / consts::SCALE;
+
+    if !(edge * -1.0..=edge).contains(&ball.position.x) {
+        if !ball.hit_edge {
+            ball.hit_edge = true;
+            ball.velocity.x *= -1.0;
+        }
+    } else {
+        ball.hit_edge = false;
+    }
     for bat in &mut bats {
         #[cfg(feature = "wall")]
         {
@@ -87,6 +103,8 @@ pub fn update(
         ball.last_hit = bat.variant.clone();
         ball.velocity.y = ball.velocity.y.clamp(-64.0, 64.0);
 
+        state.hits_with_velocity += ball.velocity.x.abs() + ball.velocity.y.abs();
+
         audio::spawn_hit_sound(&mut commands, &asset_server);
     }
     let offset = ball.velocity * Vec2::splat(time.delta_seconds());
@@ -103,11 +121,17 @@ pub fn update(
     let playable_range = Variant::Light.default_y_position()..=f32::MAX;
 
     if !(playable_range).contains(&ball.position.y) {
+        info!(
+            "score: {} in {}s",
+            state.hits_with_velocity,
+            state.game_time.elapsed_secs()
+        );
         state.game_over(GameState::Winner(ball.last_hit.clone()));
         let Ball {
             position,
             velocity,
             last_hit,
+            hit_edge: _,
         } = Ball::default();
         ball.position = position;
         ball.velocity = velocity;
