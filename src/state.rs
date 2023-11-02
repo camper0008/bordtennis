@@ -50,7 +50,6 @@ impl State {
         self.game_time.reset();
         self.music_state = Music::Zero;
         self.game_state = pause_state;
-        self.hits_with_velocity = 0.0;
     }
 }
 
@@ -89,11 +88,17 @@ pub fn update(
     music_controller: Query<(&AudioSink, &Music)>,
 ) {
     let (mut state, mut transform, mut menu_sprite) = state.single_mut();
-    if keys.just_pressed(keymap::pause()) && matches!(state.game_state, GameState::Playing) {
-        state.game_state = GameState::Paused;
-    } else if keys.just_pressed(keymap::pause()) {
-        state.game_state = GameState::Playing;
+    if keys.just_pressed(keymap::pause()) {
+        state.game_state = match state.game_state {
+            GameState::Paused => GameState::Playing,
+            GameState::Playing => GameState::Paused,
+            GameState::NewGame | GameState::Winner(_) => {
+                state.hits_with_velocity = 0.0;
+                GameState::Playing
+            }
+        }
     }
+
     if keys.just_pressed(keymap::restart()) {
         for mut ball in &mut ball {
             let Ball {
