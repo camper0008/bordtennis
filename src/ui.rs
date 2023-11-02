@@ -1,6 +1,9 @@
 use bevy::{prelude::*, sprite::Anchor, window::WindowResized};
 
-use crate::{consts, state::State};
+use crate::{
+    consts,
+    state::{GameState, State},
+};
 
 #[derive(Component)]
 pub struct ControlsUI;
@@ -88,7 +91,13 @@ pub fn spawn(
     }
 }
 
-pub fn update(mut score_ui: Query<(&ScoreUI, &mut TextureAtlasSprite)>, state: Query<&State>) {
+pub fn update(
+    mut score_ui: Query<(&ScoreUI, &mut TextureAtlasSprite, &mut Transform)>,
+    state: Query<&State>,
+    window: Query<&Window>,
+    time: Res<Time>,
+) {
+    let window = window.single();
     let state = state.single();
     let state_points = format!(
         "{:0width$}",
@@ -96,10 +105,17 @@ pub fn update(mut score_ui: Query<(&ScoreUI, &mut TextureAtlasSprite)>, state: Q
         width = SCORE_DIGITS
     );
 
-    for (ui, mut sprite) in &mut score_ui {
+    for (ui, mut sprite, mut transform) in &mut score_ui {
         let position = state_points.len() - ui.0 - 1;
         let value = &state_points[position..=position];
         let value: usize = value.parse().expect("should be valid score");
+        if !matches!(state.game_state, GameState::Playing) {
+            transform.translation.y = score_text_y_position(window.height())
+                + (time.elapsed_seconds() * consts::SCALE * 0.5 + ui.0 as f32).sin()
+                    * consts::SCORE_ANIMATION_OFFSET;
+        } else {
+            transform.translation.y = score_text_y_position(window.height());
+        }
         sprite.index = value;
     }
 }

@@ -144,12 +144,11 @@ pub fn update(
     }
     match &state.game_state {
         game_state @ (GameState::Paused | GameState::NewGame | GameState::Winner(_)) => {
+            let offset = (time.elapsed_seconds() * 2.0).sin() * consts::SCALE;
+
             transform.scale = Vec3::splat(1.0 * consts::SCALE);
-            transform.translation = Vec3::new(
-                transform.translation.x,
-                time.elapsed_seconds().sin() * consts::SCALE * 4.0,
-                transform.translation.z,
-            );
+            transform.translation =
+                Vec3::new(transform.translation.x, offset, transform.translation.z);
             menu_sprite.index = game_state.sprite_index();
         }
         GameState::Playing => transform.scale = Vec3::ZERO,
