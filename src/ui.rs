@@ -51,7 +51,7 @@ pub fn spawn(
             SpriteSheetBundle {
                 texture_atlas,
                 transform: Transform::from_scale(Vec3::splat(0.5 * consts::SCALE))
-                    .with_translation(Vec3::new(window.resolution.width() * -0.5, 0.0, 100.0)),
+                    .with_translation(Vec3::new(window.resolution.width() * -0.5, 0.0, -100.0)),
                 sprite: TextureAtlasSprite {
                     index: 4,
                     anchor: Anchor::CenterLeft,
