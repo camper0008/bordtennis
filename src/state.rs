@@ -118,7 +118,7 @@ pub fn update(
         state.game_time.tick(time.delta());
     }
     let elapsed = state.game_time.elapsed_secs();
-    let music_two_volume = (elapsed * 0.5 - 96.0).clamp(0.0, 1.0);
+    let music_two_volume = (elapsed * 0.5 - 48.0).clamp(0.0, 1.0);
     let music_one_volume = (elapsed * 0.5 - 16.0).clamp(0.0, 1.0) - music_two_volume;
     let music_zero_volume = (elapsed * 0.5).clamp(0.0, 1.0) - music_one_volume - music_two_volume;
     for (&ref sink, &ref music_state) in &music_controller {
