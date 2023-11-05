@@ -29,7 +29,7 @@ pub fn spawn_music(mut commands: Commands, asset_server: Res<AssetServer>) {
             source: asset_server.load("music-step-0.ogg"),
             settings: PlaybackSettings {
                 mode: PlaybackMode::Loop,
-                paused: true,
+                paused: false,
                 ..default()
             },
         },
@@ -40,7 +40,7 @@ pub fn spawn_music(mut commands: Commands, asset_server: Res<AssetServer>) {
             source: asset_server.load("music-step-1.ogg"),
             settings: PlaybackSettings {
                 mode: PlaybackMode::Loop,
-                paused: true,
+                paused: false,
                 ..default()
             },
         },
@@ -51,7 +51,7 @@ pub fn spawn_music(mut commands: Commands, asset_server: Res<AssetServer>) {
             source: asset_server.load("music-step-2.ogg"),
             settings: PlaybackSettings {
                 mode: PlaybackMode::Loop,
-                paused: true,
+                paused: false,
                 ..default()
             },
         },

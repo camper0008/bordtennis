@@ -30,7 +30,6 @@ impl GameState {
 pub struct State {
     pub game_state: GameState,
     pub game_time: Stopwatch,
-    music_state: Music,
     pub hits_with_velocity: f32,
 }
 
@@ -39,7 +38,6 @@ impl Default for State {
         Self {
             game_state: GameState::NewGame,
             game_time: Stopwatch::new(),
-            music_state: Music::Zero,
             hits_with_velocity: 0.0,
         }
     }
@@ -48,7 +46,6 @@ impl Default for State {
 impl State {
     pub fn game_over(&mut self, pause_state: GameState) {
         self.game_time.reset();
-        self.music_state = Music::Zero;
         self.game_state = pause_state;
     }
 }
@@ -121,25 +118,21 @@ pub fn update(
         state.game_time.tick(time.delta());
     }
     let elapsed = state.game_time.elapsed_secs();
-    state.music_state = if elapsed > 96.0 {
-        Music::Two
-    } else if elapsed > 32.0 {
-        Music::One
-    } else {
-        Music::Zero
-    };
+    let music_two_volume = (elapsed * 0.5 - 96.0).clamp(0.0, 1.0);
+    let music_one_volume = (elapsed * 0.5 - 16.0).clamp(0.0, 1.0) - music_two_volume;
+    let music_zero_volume = (elapsed * 0.5).clamp(0.0, 1.0) - music_one_volume - music_two_volume;
     for (&ref sink, &ref music_state) in &music_controller {
-        match (&music_state, &state.music_state) {
-            (Music::Two, Music::Two) if matches!(state.game_state, GameState::Playing) => {
-                sink.play()
+        match &music_state {
+            Music::Zero if matches!(state.game_state, GameState::Playing) => {
+                sink.set_volume(music_zero_volume)
             }
-            (Music::One, Music::One) if matches!(state.game_state, GameState::Playing) => {
-                sink.play()
+            Music::One if matches!(state.game_state, GameState::Playing) => {
+                sink.set_volume(music_one_volume)
             }
-            (Music::Zero, Music::Zero) if matches!(state.game_state, GameState::Playing) => {
-                sink.play()
+            Music::Two if matches!(state.game_state, GameState::Playing) => {
+                sink.set_volume(music_two_volume)
             }
-            _ => sink.pause(),
+            _ => sink.set_volume(0.0),
         }
     }
     match &state.game_state {
