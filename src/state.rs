@@ -121,9 +121,9 @@ pub fn update(
         state.game_time.tick(time.delta());
     }
     let elapsed = state.game_time.elapsed_secs();
-    state.music_state = if elapsed > 16.0 {
+    state.music_state = if elapsed > 96.0 {
         Music::Two
-    } else if elapsed > 8.0 {
+    } else if elapsed > 32.0 {
         Music::One
     } else {
         Music::Zero
