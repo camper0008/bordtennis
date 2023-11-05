@@ -68,7 +68,7 @@ pub fn update(
         ball.hit_edge = false;
     }
     for bat in &mut bats {
-        #[cfg(feature = "wall")]
+        #[cfg(feature = "singleplayer")]
         {
             match &ball.last_hit {
                 Variant::Light => {
@@ -114,10 +114,10 @@ pub fn update(
     let angle = (ball.velocity.x / ball.velocity.y).atan();
     transform.rotation = Quat::from_rotation_z(angle);
 
-    #[cfg(not(feature = "wall"))]
+    #[cfg(not(feature = "singleplayer"))]
     let playable_range = Variant::Light.default_y_position()..=Variant::Dark.default_y_position();
 
-    #[cfg(feature = "wall")]
+    #[cfg(feature = "singleplayer")]
     let playable_range = Variant::Light.default_y_position()..=f32::MAX;
 
     if !(playable_range).contains(&ball.position.y) {

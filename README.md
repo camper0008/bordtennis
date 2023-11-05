@@ -2,10 +2,10 @@
 
 table tennis game with bevy
 
-# controls
+## controls
 
 player 1 has `a|w|d|LShift`, player 2 has `←|↑|→|RShift`
 
-pause with `P`
+start/pause/unpause with `P`
 
 restart with `R`

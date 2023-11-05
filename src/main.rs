@@ -40,7 +40,7 @@ fn main() {
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
-    #[cfg(not(feature = "wall"))]
+    #[cfg(not(feature = "singleplayer"))]
     bat::spawn(&mut commands, &asset_server, bat::Variant::Dark);
     bat::spawn(&mut commands, &asset_server, bat::Variant::Light);
 }
