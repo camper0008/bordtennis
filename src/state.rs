@@ -45,7 +45,6 @@ impl Default for State {
 
 impl State {
     pub fn game_over(&mut self, pause_state: GameState) {
-        self.game_time.reset();
         self.game_state = pause_state;
     }
 }
@@ -91,6 +90,7 @@ pub fn update(
             GameState::Playing => GameState::Paused,
             GameState::NewGame | GameState::Winner(_) => {
                 state.hits_with_velocity = 0.0;
+                state.game_time.reset();
                 GameState::Playing
             }
         }
